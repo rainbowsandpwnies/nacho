@@ -18,6 +18,7 @@ static struct option long_options [] = {
     {"output", required_argument, 0, 'o'},
     {"queso", required_argument, 0, 'q'},
     {"smtlib2", required_argument, 0, 's'},
+    {"ssavar", required_argument, 0, 'v'},
     {0, 0, 0, 0}
 };
 
@@ -57,6 +58,7 @@ int main (int argc, char * argv [])
     char * forwardslicevarname = NULL;
     char * backwardslicevarname = NULL;
     char * iquesofilename = NULL;
+    char * ssavarname = NULL;
     bool dossa = false;
     bool concretize = false;
     int option_index = 0;
@@ -65,7 +67,7 @@ int main (int argc, char * argv [])
 
     bool parseloop = true;
     while (parseloop) {
-        int c = getopt_long (argc, argv, "ab:chi:l:n:o:q:s:", long_options, &option_index);
+        int c = getopt_long (argc, argv, "ab:chi:l:n:o:q:s:v:", long_options, &option_index);
         switch (c) {
             case 'a' :
                 dossa = true;
@@ -88,6 +90,7 @@ int main (int argc, char * argv [])
                 std::cout << "-o --output FILE              output il json file" << std::endl;
                 std::cout << "-q --queso FILE               output queso file" << std::endl;
                 std::cout << "-s --smtlib2 FILE             output smtlib2 file" << std::endl;
+                std::cout << "-v --ssavar VARNAME           re-ssa single variable" << std::endl;
                 return 0;
             case 'i' :
                 ilfilename = optarg;
@@ -106,6 +109,9 @@ int main (int argc, char * argv [])
                 break;
             case 's' :
                 smtlib2filename = optarg;
+                break;
+            case 'v' :
+                ssavarname = optarg;
                 break;
             default :
                 parseloop = false;
@@ -127,6 +133,9 @@ int main (int argc, char * argv [])
 
     if (dossa)
         instructions.ssa();
+
+    if (ssavarname)
+        instructions.ssa_var(ssavarname);
 
     if (forwardslicevarname) {
         Variable trace_var = parseVarString(forwardslicevarname);

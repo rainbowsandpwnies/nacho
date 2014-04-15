@@ -20,6 +20,8 @@ class Instructions {
         Instructions & operator = (const Instructions & rhs);
 
         void ssa ();
+        void ssa_var (std::string var_name);
+
         std::list <std::string> declarations ();
 
         std::list <Instruction *> g_instructions () { return instructions; }

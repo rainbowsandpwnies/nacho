@@ -91,6 +91,36 @@ void Instructions :: ssa ()
 }
 
 
+void Instructions :: ssa_var (std::string var_name)
+{
+
+    unsigned int count = 0;
+
+    std::list <Instruction *> :: iterator it;
+
+    for (it = instructions.begin(); it != instructions.end(); it++) {
+        Instruction * instruction = *it;
+        
+        // set read vars
+        std::list <Variable *> read_vars = instruction->variables_read();
+        std::list <Variable *> :: iterator vit;
+        for (vit = read_vars.begin(); vit != read_vars.end(); vit++) {
+            Variable * variable = *vit;
+            if (variable->g_type() == VARIABLE_CONST)
+                continue;
+            if (variable->g_name() == var_name)
+                variable->s_count(count);
+        }
+
+        // set write var
+        Variable * variable = instruction->variable_written();
+        if (variable->g_name() == var_name)
+            variable->s_count(count++);
+    }
+
+}
+
+
 std::list <std::string> Instructions :: declarations ()
 {
     std::map <std::string, std::string> decs;
