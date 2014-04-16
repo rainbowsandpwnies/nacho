@@ -134,9 +134,6 @@ int main (int argc, char * argv [])
     if (dossa)
         instructions.ssa();
 
-    if (ssavarname)
-        instructions.ssa_var(ssavarname);
-
     if (forwardslicevarname) {
         Variable trace_var = parseVarString(forwardslicevarname);
 
@@ -154,6 +151,9 @@ int main (int argc, char * argv [])
         new_instructions.s_copy_instructions(instructions.slice_backward(trace_var));
         instructions.s_copy_instructions(new_instructions.g_instructions());
     }
+
+    if (ssavarname)
+        instructions.ssa_var(ssavarname);
 
     if (smtlib2filename != NULL) {
         std::ofstream smtlib2file;

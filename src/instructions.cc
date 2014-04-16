@@ -114,8 +114,10 @@ void Instructions :: ssa_var (std::string var_name)
 
         // set write var
         Variable * variable = instruction->variable_written();
+        if (variable == NULL)
+            continue;
         if (variable->g_name() == var_name)
-            variable->s_count(count++);
+            variable->s_count(++count);
     }
 
 }
@@ -426,6 +428,8 @@ std::list <Instruction *> Instructions :: slice_backward (Variable variable) {
             slice_instructions.push_back(instruction);
         }
     }
+
+    slice_instructions.reverse();
 
     return slice_instructions;
 }
