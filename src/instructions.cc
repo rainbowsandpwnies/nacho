@@ -91,6 +91,30 @@ void Instructions :: ssa ()
 }
 
 
+std::string Instructions :: smtlib2 ()
+{
+    std::stringstream smtlib2;
+
+    smtlib2 << "(set-option :produce-models true)" << std::endl;
+    smtlib2 << "(set-logic QF_AUFBV)" << std::endl;
+    smtlib2 << "(set-info :smt-lib-version 2.0)" << std::endl;
+
+    std::list <std::string> declarations = this->declarations();
+    std::list <std::string> :: iterator dit;
+    for (dit = declarations.begin(); dit != declarations.end(); dit++) {
+        smtlib2 << (*dit) << std::endl;
+    }
+
+    std::list <Instruction *> :: iterator it;
+    for (it = instructions.begin(); it != instructions.end(); it++) {
+        Instruction * instruction = *it;
+        smtlib2 << instruction->smtlib2() << std::endl;
+    }
+
+    return smtlib2.str();
+}
+
+
 void Instructions :: ssa_var (std::string var_name)
 {
 

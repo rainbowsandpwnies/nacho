@@ -25,8 +25,8 @@ class Instructions {
         std::list <std::string> declarations ();
 
         std::list <Instruction *> g_instructions () { return instructions; }
-
-        std::list <Instruction *> slice (std::string var_name);
+        
+        std::string smtlib2 ();
 
         std::string to_json_str ();
         bool from_json_file (std::string filename);

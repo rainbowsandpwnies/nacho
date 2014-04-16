@@ -61,26 +61,6 @@ std::string Variable :: declare ()
     return "";
 }
 
-std::string Variable :: g_name ()
-{
-    return name;
-}
-
-int Variable :: g_bits ()
-{
-    return bits;
-}
-
-int Variable :: g_type ()
-{
-    return type;
-}
-
-unsigned int Variable :: g_addresses ()
-{
-    return addresses;
-}
-
 void Variable :: s_count (unsigned int count)
 {
     this->count = count;
@@ -193,7 +173,7 @@ queso::Instruction InstructionComment :: to_queso ()
 
 
 InstructionAssign :: InstructionAssign (const Variable & dst, const Variable & src)
-    : dst (dst), src (src)
+    : Instruction ("assign"), dst (dst), src (src)
 {}
 
 Variable * InstructionAssign :: variable_written ()
@@ -268,19 +248,19 @@ queso::Instruction InstructionAssign :: to_queso ()
 
 
 InstructionStore :: InstructionStore (const Variable & mem, const Variable & address, const Variable & value)
-    : dstmem (mem), srcmem(mem), address (address), value (value), trace_address (0), trace_address_set(false)
+    : Instruction ("store"), dstmem (mem), srcmem(mem), address (address), value (value), trace_address (0), trace_address_set(false)
 {}
 
 InstructionStore :: InstructionStore (const Variable & mem, const Variable & address, const Variable & value, uint64_t trace_address)
-    : dstmem (mem), srcmem(mem), address (address), value (value), trace_address (trace_address), trace_address_set(true)
+    : Instruction ("store"), dstmem (mem), srcmem(mem), address (address), value (value), trace_address (trace_address), trace_address_set(true)
 {}
 
 InstructionStore :: InstructionStore (const Variable & dstmem, const Variable & srcmem, const Variable & address, const Variable & value)
-    : dstmem (dstmem), srcmem(srcmem), address (address), value (value), trace_address (0), trace_address_set(false)
+    : Instruction ("store"), dstmem (dstmem), srcmem(srcmem), address (address), value (value), trace_address (0), trace_address_set(false)
 {}
 
 InstructionStore :: InstructionStore (const Variable & dstmem, const Variable & srcmem, const Variable & address, const Variable & value, uint64_t trace_address)
-    : dstmem (dstmem), srcmem(srcmem), address (address), value (value), trace_address (trace_address), trace_address_set(true)
+    : Instruction ("store"), dstmem (dstmem), srcmem(srcmem), address (address), value (value), trace_address (trace_address), trace_address_set(true)
 {}
 
 Variable * InstructionStore :: variable_written ()
@@ -370,11 +350,11 @@ queso::Instruction InstructionStore :: to_queso ()
 
 
 InstructionLoad :: InstructionLoad (const Variable & mem, const Variable & address, const Variable & dst)
-    : mem (mem), address (address), dst (dst), trace_address (0), trace_address_set (false)
+    : Instruction ("load"), mem (mem), address (address), dst (dst), trace_address (0), trace_address_set (false)
 {}
 
 InstructionLoad :: InstructionLoad (const Variable & mem, const Variable & address, const Variable & dst, uint64_t trace_address)
-    : mem (mem), address (address), dst (dst), trace_address (trace_address), trace_address_set (true)
+    : Instruction ("load"), mem (mem), address (address), dst (dst), trace_address (trace_address), trace_address_set (true)
 {}
 
 Variable * InstructionLoad :: variable_written ()
@@ -454,7 +434,7 @@ queso::Instruction InstructionLoad :: to_queso ()
 
 
 InstructionIte :: InstructionIte (const Variable & dst, const Variable & condition, const Variable & t, const Variable & e)
-    : dst (dst), condition (condition), t (t), e (e)
+    : Instruction ("ite"), dst (dst), condition (condition), t (t), e (e)
 {}
 
 Variable * InstructionIte :: variable_written ()
@@ -532,7 +512,7 @@ queso::Instruction InstructionIte :: to_queso ()
 
 
 InstructionSignExtend :: InstructionSignExtend (const Variable & dst, const Variable & src)
-    : dst (dst), src (src)
+    : Instruction ("signextend"), dst (dst), src (src)
 {}
 
 Variable * InstructionSignExtend :: variable_written ()
@@ -597,8 +577,8 @@ queso::Instruction InstructionSignExtend :: to_queso ()
 
 
 
-InstructionArithmetic :: InstructionArithmetic (const Variable & dst, const Variable & lhs, const Variable & rhs)
-    : dst (dst), lhs (lhs), rhs (rhs)
+InstructionArithmetic :: InstructionArithmetic (const std::string & opcode, const Variable & dst, const Variable & lhs, const Variable & rhs)
+    : Instruction (opcode), dst (dst), lhs (lhs), rhs (rhs)
 {}
 
 Variable * InstructionArithmetic :: variable_written ()
@@ -633,7 +613,7 @@ std::string InstructionArithmetic :: smtlib2 ()
 json_t * InstructionArithmetic :: to_json ()
 {
     json_t * ins = json_object();
-    json_t * opcode = json_string(opstring.c_str());
+    json_t * opcode = json_string(this->opcode.c_str());
     json_t * dst = this->dst.to_json();
     json_t * lhs = this->lhs.to_json();
     json_t * rhs = this->rhs.to_json();
@@ -653,9 +633,8 @@ json_t * InstructionArithmetic :: to_json ()
 
 InstructionArithmetic * InstructionArithmetic :: copy ()
 {
-    InstructionArithmetic * newins = new InstructionArithmetic(dst, lhs, rhs);
+    InstructionArithmetic * newins = new InstructionArithmetic(opcode, dst, lhs, rhs);
     newins->bvop = this->bvop;
-    newins->opstring = this->opstring;
     newins->quesoOpcode = this->quesoOpcode;
     return newins;
 }
@@ -674,105 +653,95 @@ queso::Instruction InstructionArithmetic :: to_queso ()
 
 
 InstructionAdd :: InstructionAdd (const Variable & dst, const Variable & a, const Variable & b)
-    : InstructionArithmetic(dst, a, b)
+    : InstructionArithmetic("add", dst, a, b)
 {
     bvop = "bvadd";
-    opstring = "add";
     quesoOpcode = queso::Opcode::ADD;
 }
 
 
 
 InstructionSub :: InstructionSub (const Variable & dst, const Variable & a, const Variable & b)
-    : InstructionArithmetic(dst, a, b)
+    : InstructionArithmetic("sub", dst, a, b)
 {
     bvop = "bvsub";
-    opstring = "sub";
     quesoOpcode = queso::Opcode::SUB;
 }
 
 
 
 InstructionMul :: InstructionMul (const Variable & dst, const Variable & a, const Variable & b)
-    : InstructionArithmetic(dst, a, b)
+    : InstructionArithmetic("mul", dst, a, b)
 {
     bvop = "bvmul";
-    opstring = "mul";
     quesoOpcode = queso::Opcode::MUL;
 }
 
 
 
 InstructionUdiv :: InstructionUdiv (const Variable & dst, const Variable & a, const Variable & b)
-    : InstructionArithmetic(dst, a, b)
+    : InstructionArithmetic("udiv", dst, a, b)
 {
     bvop = "bvudiv";
-    opstring = "udiv";
     quesoOpcode = queso::Opcode::UDIV;
 }
 
 
 
 InstructionUmod :: InstructionUmod (const Variable & dst, const Variable & a, const Variable & b)
-    : InstructionArithmetic(dst, a, b)
+    : InstructionArithmetic("umod", dst, a, b)
 {
     bvop = "bvumod";
-    opstring = "umod";
     quesoOpcode = queso::Opcode::UMOD;
 }
 
 
 
 InstructionAnd :: InstructionAnd (const Variable & dst, const Variable & a, const Variable & b)
-    : InstructionArithmetic(dst, a, b)
+    : InstructionArithmetic("and", dst, a, b)
 {
     bvop = "bvand";
-    opstring = "and";
     quesoOpcode = queso::Opcode::AND;
 }
 
 
 
 InstructionOr :: InstructionOr (const Variable & dst, const Variable & a, const Variable & b)
-    : InstructionArithmetic(dst, a, b)
+    : InstructionArithmetic("or", dst, a, b)
 {
     bvop = "bvor";
-    opstring = "or";
     quesoOpcode = queso::Opcode::OR;
 }
 
 
 
 InstructionXor :: InstructionXor (const Variable & dst, const Variable & a, const Variable & b)
-    : InstructionArithmetic(dst, a, b)
+    : InstructionArithmetic("xor", dst, a, b)
 {
     bvop = "bvxor";
-    opstring = "xor";
     quesoOpcode = queso::Opcode::XOR;
 }
 
 
 InstructionShr :: InstructionShr (const Variable & dst, const Variable & var, const Variable & bits)
-    : InstructionArithmetic(dst, var, bits)
+    : InstructionArithmetic("shr", dst, var, bits)
 {
     bvop = "bvlshr";
-    opstring = "shr";
     quesoOpcode = queso::Opcode::SHR;
 }
 
 
 InstructionShl :: InstructionShl (const Variable & dst, const Variable & var, const Variable & bits)
-    : InstructionArithmetic(dst, var, bits)
+    : InstructionArithmetic("shl", dst, var, bits)
 {
     bvop = "bvshl";
-    opstring = "shl";
     quesoOpcode = queso::Opcode::SHL;
 }
 
 
 
-InstructionCmp :: InstructionCmp (const Variable & dst, const Variable & lhs, const Variable & rhs)
-    : dst (dst), lhs (lhs), rhs (rhs)
+InstructionCmp :: InstructionCmp (const std::string & opcode, const Variable & dst, const Variable & lhs, const Variable & rhs)
+    : Instruction (opcode), dst (dst), lhs (lhs), rhs (rhs)
 {}
 
 Variable * InstructionCmp :: variable_written ()
@@ -808,7 +777,7 @@ std::string InstructionCmp :: smtlib2 ()
 json_t * InstructionCmp :: to_json ()
 {
     json_t * ins = json_object();
-    json_t * opcode = json_string(opstring.c_str());
+    json_t * opcode = json_string(this->opcode.c_str());
     json_t * dst = this->dst.to_json();
     json_t * lhs = this->lhs.to_json();
     json_t * rhs = this->rhs.to_json();
@@ -828,9 +797,8 @@ json_t * InstructionCmp :: to_json ()
 
 InstructionCmp * InstructionCmp :: copy ()
 {
-    InstructionCmp * newins = new InstructionCmp(dst, lhs, rhs);
+    InstructionCmp * newins = new InstructionCmp(opcode, dst, lhs, rhs);
     newins->bvop = this->bvop;
-    newins->opstring = this->opstring;
     newins->quesoOpcode = this->quesoOpcode;
     return newins;
 }
@@ -847,45 +815,40 @@ queso::Instruction InstructionCmp :: to_queso ()
 
 
 InstructionCmpEq :: InstructionCmpEq (const Variable & dst, const Variable & lhs, const Variable & rhs)
-    : InstructionCmp(dst, lhs, rhs)
+    : InstructionCmp("cmpeq", dst, lhs, rhs)
 {
     bvop = "=";
-    opstring = "cmpeq";
     quesoOpcode = queso::Opcode::CMPEQ;
 }
 
 
 InstructionCmpLtu :: InstructionCmpLtu (const Variable & dst, const Variable & lhs, const Variable & rhs)
-    : InstructionCmp(dst, lhs, rhs)
+    : InstructionCmp("cmpltu", dst, lhs, rhs)
 {
     bvop = "bvlt";
-    opstring = "cmpltu";
     quesoOpcode = queso::Opcode::CMPLTU;
 }
 
 
 InstructionCmpLeu :: InstructionCmpLeu (const Variable & dst, const Variable & lhs, const Variable & rhs)
-    : InstructionCmp(dst, lhs, rhs)
+    : InstructionCmp("cmpleu", dst, lhs, rhs)
 {
     bvop = "bvle";
-    opstring = "cmpleu";
     quesoOpcode = queso::Opcode::CMPLEU;
 }
 
 
 InstructionCmpLts :: InstructionCmpLts (const Variable & dst, const Variable & lhs, const Variable & rhs)
-    : InstructionCmp(dst, lhs, rhs)
+    : InstructionCmp("cmplts", dst, lhs, rhs)
 {
     bvop = "sbvlt";
-    opstring = "cmplts";
     quesoOpcode = queso::Opcode::CMPLTS;
 }
 
 
 InstructionCmpLes :: InstructionCmpLes (const Variable & dst, const Variable & lhs, const Variable & rhs)
-    : InstructionCmp(dst, lhs, rhs)
+    : InstructionCmp("cmples", dst, lhs, rhs)
 {
     bvop = "sbvle";
-    opstring = "cmples";
     quesoOpcode = queso::Opcode::CMPLES;
 }

@@ -25,10 +25,12 @@ class Variable {
         Variable (int bits, uint64_t lval);
         Variable (const std::string name, uint64_t addresses, int bits);
 
-        std::string  g_name ();
-        int          g_bits ();
-        int          g_type ();
-        unsigned int g_addresses ();
+        std::string  g_name () { return name; }
+        int          g_bits () { return bits; }
+        int          g_type () { return type; }
+        unsigned int g_addresses () { return addresses; }
+        unsigned int g_count () { return count; }
+        uint64_t     g_lval () { return lval; }
 
         std::string smtlib2 ();
         std::string declare ();
@@ -41,7 +43,10 @@ class Variable {
 
 
 class Instruction {
+    protected :
+        std::string opcode;
     public :
+        Instruction (std::string opcode) : opcode (opcode) {}
         virtual ~Instruction() {};
         virtual Variable * variable_written () = 0;
         virtual std::list <Variable *> variables_read () = 0;
@@ -50,13 +55,14 @@ class Instruction {
         virtual json_t * to_json () = 0;
         virtual Instruction * copy () = 0;
         virtual queso::Instruction to_queso () = 0;
+        std::string g_opcode () { return opcode; }
 };
 
 class InstructionComment : public Instruction {
     private :
         std::string comment;
     public :
-        InstructionComment (std::string comment) : comment (comment) {}
+        InstructionComment (std::string comment) : Instruction ("comment"), comment (comment) {}
         Variable * variable_written () { return NULL; }
         std::list <Variable *> variables_read () { return std::list <Variable *> (); }
         std::list <Variable *> variables () { return std::list <Variable *> (); }
@@ -64,6 +70,8 @@ class InstructionComment : public Instruction {
         json_t * to_json ();
         InstructionComment * copy ();
         queso::Instruction to_queso ();
+
+        std::string & g_comment () { return comment; }
 
 };
 
@@ -80,6 +88,9 @@ class InstructionAssign : public Instruction {
         json_t * to_json ();
         InstructionAssign * copy ();
         queso::Instruction to_queso ();
+
+        Variable & g_dst () { return dst; }
+        Variable & g_src () { return src; }
 };
 
 class InstructionStore : public Instruction {
@@ -169,6 +180,7 @@ class InstructionIte : public Instruction {
         Variable & g_t () { return t; }
         Variable & g_e () { return e; }
         Variable & g_dst () { return dst; }
+        Variable & g_condition () { return condition; }
 };
 
 class InstructionSignExtend : public Instruction {
@@ -184,6 +196,9 @@ class InstructionSignExtend : public Instruction {
         json_t * to_json ();
         InstructionSignExtend * copy ();
         queso::Instruction to_queso ();
+
+        Variable & g_dst () { return dst; }
+        Variable & g_src () { return src; }
 };
 
 
@@ -193,10 +208,9 @@ class InstructionArithmetic : public Instruction {
         Variable lhs;
         Variable rhs;
         std::string bvop;
-        std::string opstring;
         queso::Opcode quesoOpcode;
     public :
-        InstructionArithmetic (const Variable & dst, const Variable & lhs, const Variable & rhs);
+        InstructionArithmetic (const std::string & opcode, const Variable & dst, const Variable & lhs, const Variable & rhs);
         Variable * variable_written ();
         std::list <Variable *> variables_read ();
         std::list <Variable *> variables ();
@@ -204,6 +218,10 @@ class InstructionArithmetic : public Instruction {
         json_t * to_json ();
         InstructionArithmetic * copy();
         queso::Instruction to_queso ();
+
+        Variable & g_dst () { return dst; }
+        Variable & g_lhs () { return lhs; }
+        Variable & g_rhs () { return rhs; }
 };
 
 class InstructionAdd : public InstructionArithmetic {
@@ -263,10 +281,9 @@ class InstructionCmp : public Instruction {
         Variable lhs;
         Variable rhs;
         std::string bvop;
-        std::string opstring;
         queso::Opcode quesoOpcode;
     public :
-        InstructionCmp (const Variable & dst, const Variable & lhs, const Variable & rhs);
+        InstructionCmp (const std::string & opcode, const Variable & dst, const Variable & lhs, const Variable & rhs);
         Variable * variable_written ();
         std::list <Variable *> variables_read ();
         std::list <Variable *> variables ();
@@ -274,6 +291,10 @@ class InstructionCmp : public Instruction {
         json_t * to_json ();
         InstructionCmp * copy ();
         queso::Instruction to_queso ();
+
+        Variable & g_dst () { return dst; }
+        Variable & g_lhs () { return lhs; }
+        Variable & g_rhs () { return rhs; }
 };
 
 
