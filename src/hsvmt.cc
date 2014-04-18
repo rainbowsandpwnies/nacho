@@ -17,8 +17,15 @@ void Hsvmt :: setmem (uint8_t * memory, size_t size, uint64_t address)
     for (size_t i = 0; i < size; i++) {
         if (address + i > 65536)
             break;
-        instructions.append(new InstructionStore(mem, Variable(16, address + i), Variable(8, memory[i]), address + i));
+        append(new InstructionStore(mem, Variable(16, address + i), Variable(8, memory[i]), address + i));
     }
+}
+
+
+inline void Hsvmt :: append (Instruction * instruction)
+{
+    instruction->s_pc(pc);
+    instructions.append(instruction);
 }
 
 
@@ -54,13 +61,13 @@ void Hsvmt :: store16 (const Variable & mem, const Variable & address, const Var
     Variable storeh16 = Variable("storeh16", 16);
     Variable address2 = Variable("address2", 16);
 
-    instructions.append(new InstructionShr(storeh16, value, Variable(16, 8)));
-    instructions.append(new InstructionAssign(storeh8, storeh16));
-    instructions.append(new InstructionStore(mem, address, storeh8, trace_address));
+    append(new InstructionShr(storeh16, value, Variable(16, 8)));
+    append(new InstructionAssign(storeh8, storeh16));
+    append(new InstructionStore(mem, address, storeh8, trace_address));
 
-    instructions.append(new InstructionAssign(storel8, value));
-    instructions.append(new InstructionAdd(address2, address, Variable(16, 1)));
-    instructions.append(new InstructionStore(mem, address2, storel8, trace_address + 1));
+    append(new InstructionAssign(storel8, value));
+    append(new InstructionAdd(address2, address, Variable(16, 1)));
+    append(new InstructionStore(mem, address2, storel8, trace_address + 1));
 }
 
 
@@ -74,14 +81,14 @@ Variable Hsvmt :: load16 (const Variable & mem, const Variable & address, uint64
     Variable result = Variable("load16", 16);
     Variable address2 = Variable("address2", 16);
 
-    instructions.append(new InstructionLoad(mem, address, loadh8, trace_address));
-    instructions.append(new InstructionAdd(address2, address, Variable(16, 1)));
-    instructions.append(new InstructionLoad(mem, address2, loadl8, trace_address));
+    append(new InstructionLoad(mem, address, loadh8, trace_address));
+    append(new InstructionAdd(address2, address, Variable(16, 1)));
+    append(new InstructionLoad(mem, address2, loadl8, trace_address));
 
-    instructions.append(new InstructionAssign(loadl16, loadl8));
-    instructions.append(new InstructionAssign(loadh16, loadh8));
-    instructions.append(new InstructionShl(loadh162, loadh16, Variable(16, 8)));
-    instructions.append(new InstructionOr(result, loadh162, loadl16));
+    append(new InstructionAssign(loadl16, loadl8));
+    append(new InstructionAssign(loadh16, loadh8));
+    append(new InstructionShl(loadh162, loadh16, Variable(16, 8)));
+    append(new InstructionOr(result, loadh162, loadl16));
 
     return result;
 }
@@ -99,95 +106,95 @@ bool Hsvmt :: translate (uint8_t * data, uint32_t size, uint64_t address, uint64
     Variable mem = Variable("mem", 16, 8);
 
     switch (ins->opcode) {
-    case OP_ADD : instructions.append(new InstructionAdd(oper0, oper1, oper2)); break;
-    case OP_SUB : instructions.append(new InstructionSub(oper0, oper1, oper2)); break;
-    case OP_MUL : instructions.append(new InstructionMul(oper0, oper1, oper2)); break;
-    case OP_DIV : instructions.append(new InstructionUdiv(oper0, oper1, oper2)); break;
-    case OP_MOD : instructions.append(new InstructionUmod(oper0, oper1, oper2)); break;
-    case OP_AND : instructions.append(new InstructionAnd(oper0, oper1, oper2)); break;
-    case OP_OR  : instructions.append(new InstructionOr(oper0, oper1, oper2)); break;
-    case OP_XOR : instructions.append(new InstructionXor(oper0, oper1, oper2)); break;
-    case OP_ADDLVAL : instructions.append(new InstructionAdd(oper0, oper0, lval)); break;
-    case OP_SUBLVAL : instructions.append(new InstructionSub(oper0, oper0, lval)); break;
-    case OP_MULLVAL : instructions.append(new InstructionMul(oper0, oper0, lval)); break;
-    case OP_DIVLVAL : instructions.append(new InstructionUdiv(oper0, oper0, lval)); break;
-    case OP_MODLVAL : instructions.append(new InstructionUmod(oper0, oper0, lval)); break;
-    case OP_ANDLVAL : instructions.append(new InstructionAnd(oper0, oper0, lval)); break;
-    case OP_ORLVAL  : instructions.append(new InstructionOr(oper0, oper0, lval)); break;
-    case OP_XORLVAL : instructions.append(new InstructionXor(oper0, oper0, lval));
+    case OP_ADD : append(new InstructionAdd(oper0, oper1, oper2)); break;
+    case OP_SUB : append(new InstructionSub(oper0, oper1, oper2)); break;
+    case OP_MUL : append(new InstructionMul(oper0, oper1, oper2)); break;
+    case OP_DIV : append(new InstructionUdiv(oper0, oper1, oper2)); break;
+    case OP_MOD : append(new InstructionUmod(oper0, oper1, oper2)); break;
+    case OP_AND : append(new InstructionAnd(oper0, oper1, oper2)); break;
+    case OP_OR  : append(new InstructionOr(oper0, oper1, oper2)); break;
+    case OP_XOR : append(new InstructionXor(oper0, oper1, oper2)); break;
+    case OP_ADDLVAL : append(new InstructionAdd(oper0, oper0, lval)); break;
+    case OP_SUBLVAL : append(new InstructionSub(oper0, oper0, lval)); break;
+    case OP_MULLVAL : append(new InstructionMul(oper0, oper0, lval)); break;
+    case OP_DIVLVAL : append(new InstructionUdiv(oper0, oper0, lval)); break;
+    case OP_MODLVAL : append(new InstructionUmod(oper0, oper0, lval)); break;
+    case OP_ANDLVAL : append(new InstructionAnd(oper0, oper0, lval)); break;
+    case OP_ORLVAL  : append(new InstructionOr(oper0, oper0, lval)); break;
+    case OP_XORLVAL : append(new InstructionXor(oper0, oper0, lval));
     case OP_JMP :
     {
         Variable rip = Variable("rip", 16);
-        instructions.append(new InstructionAdd(rip, rip, lval));
+        append(new InstructionAdd(rip, rip, lval));
         break;
     }
     case OP_JE :
-        instructions.append(new InstructionCmpEq(Variable("tmp", 1), Variable("flags", 16), Variable(16, 0)));
-        instructions.append(new InstructionAdd(Variable("tmp2", 16), Variable("rip", 16), lval));
-        instructions.append(new InstructionIte(Variable("rip", 16), Variable("tmp", 1), Variable("tmp2", 16), Variable("rip", 16)));
+        append(new InstructionCmpEq(Variable("tmp", 1), Variable("flags", 16), Variable(16, 0)));
+        append(new InstructionAdd(Variable("tmp2", 16), Variable("rip", 16), lval));
+        append(new InstructionIte(Variable("rip", 16), Variable("tmp", 1), Variable("tmp2", 16), Variable("rip", 16)));
         break;
     case OP_JNE :
-        instructions.append(new InstructionCmpEq(Variable("tmp", 1), Variable("flags", 16), Variable(16, 0)));
-        instructions.append(new InstructionXor(Variable("tmp", 1), Variable("tmp", 1), Variable((uint64_t) 1, 1)));
-        instructions.append(new InstructionAdd(Variable("tmp2", 16), Variable("rip", 16), lval));
-        instructions.append(new InstructionIte(Variable("rip", 16), Variable("tmp", 1), Variable("tmp2", 16), Variable("rip", 16)));
+        append(new InstructionCmpEq(Variable("tmp", 1), Variable("flags", 16), Variable(16, 0)));
+        append(new InstructionXor(Variable("tmp", 1), Variable("tmp", 1), Variable((uint64_t) 1, 1)));
+        append(new InstructionAdd(Variable("tmp2", 16), Variable("rip", 16), lval));
+        append(new InstructionIte(Variable("rip", 16), Variable("tmp", 1), Variable("tmp2", 16), Variable("rip", 16)));
         break;
     case OP_JL :
-        instructions.append(new InstructionCmpLts(Variable("tmp", 1), Variable("flags", 16), Variable(16, 0)));
-        instructions.append(new InstructionAdd(Variable("tmp2", 16), Variable("rip", 16), lval));
-        instructions.append(new InstructionIte(Variable("rip", 16), Variable("tmp", 1), Variable("tmp2", 16), Variable("rip", 16)));
+        append(new InstructionCmpLts(Variable("tmp", 1), Variable("flags", 16), Variable(16, 0)));
+        append(new InstructionAdd(Variable("tmp2", 16), Variable("rip", 16), lval));
+        append(new InstructionIte(Variable("rip", 16), Variable("tmp", 1), Variable("tmp2", 16), Variable("rip", 16)));
         break;
     case OP_JLE :
-        instructions.append(new InstructionCmpLes(Variable("tmp", 1), Variable("flags", 16), Variable(16, 0)));
-        instructions.append(new InstructionAdd(Variable("tmp2", 16), Variable("rip", 16), lval));
-        instructions.append(new InstructionIte(Variable("rip", 16), Variable("tmp", 1), Variable("tmp2", 16), Variable("rip", 16)));
+        append(new InstructionCmpLes(Variable("tmp", 1), Variable("flags", 16), Variable(16, 0)));
+        append(new InstructionAdd(Variable("tmp2", 16), Variable("rip", 16), lval));
+        append(new InstructionIte(Variable("rip", 16), Variable("tmp", 1), Variable("tmp2", 16), Variable("rip", 16)));
         break;
     case OP_JG :
-        instructions.append(new InstructionCmpLts(Variable("tmp", 1), Variable(16, 0), Variable("flags", 16)));
-        instructions.append(new InstructionAdd(Variable("tmp2", 16), Variable("rip", 16), lval));
-        instructions.append(new InstructionIte(Variable("rip", 16), Variable("tmp", 1), Variable("tmp2", 16), Variable("rip", 16)));
+        append(new InstructionCmpLts(Variable("tmp", 1), Variable(16, 0), Variable("flags", 16)));
+        append(new InstructionAdd(Variable("tmp2", 16), Variable("rip", 16), lval));
+        append(new InstructionIte(Variable("rip", 16), Variable("tmp", 1), Variable("tmp2", 16), Variable("rip", 16)));
         break;
     case OP_JGE :
-        instructions.append(new InstructionCmpLes(Variable("tmp", 1), Variable(16, 0), Variable("flags", 16)));
-        instructions.append(new InstructionAdd(Variable("tmp2", 16), Variable("rip", 16), lval));
-        instructions.append(new InstructionIte(Variable("rip", 16), Variable("tmp", 1), Variable("tmp2", 16), Variable("rip", 16)));
+        append(new InstructionCmpLes(Variable("tmp", 1), Variable(16, 0), Variable("flags", 16)));
+        append(new InstructionAdd(Variable("tmp2", 16), Variable("rip", 16), lval));
+        append(new InstructionIte(Variable("rip", 16), Variable("tmp", 1), Variable("tmp2", 16), Variable("rip", 16)));
         break;
     case OP_CALL :
-        instructions.append(new InstructionSub(Variable("rsp", 16), Variable("rsp", 16), Variable(16, 2)));
+        append(new InstructionSub(Variable("rsp", 16), Variable("rsp", 16), Variable(16, 2)));
         store16(mem, Variable("rsp", 16), Variable("rip", 16), trace_address);
-        instructions.append(new InstructionAdd(Variable("rsp", 16), Variable("rsp", 16), lval));
+        append(new InstructionAdd(Variable("rsp", 16), Variable("rsp", 16), lval));
         break;
     case OP_RET :
     {
         Variable tmp = load16(mem, Variable("rsp", 16), trace_address);
-        instructions.append(new InstructionAssign(Variable("rsp", 16), tmp));
-        instructions.append(new InstructionAdd(Variable("rsp", 16), Variable("rsp", 16), Variable(16, 2)));
+        append(new InstructionAssign(Variable("rsp", 16), tmp));
+        append(new InstructionAdd(Variable("rsp", 16), Variable("rsp", 16), Variable(16, 2)));
         break;
     }
     case OP_LOAD :
     {
         Variable tmp = load16(mem, lval, trace_address);
-        instructions.append(new InstructionAssign(oper0, tmp));
+        append(new InstructionAssign(oper0, tmp));
         break;
     }
     case OP_LOADR :
     {
         Variable tmp = load16(mem, oper1, trace_address);
-        instructions.append(new InstructionAssign(oper0, tmp));
+        append(new InstructionAssign(oper0, tmp));
         break;
     }
     case OP_LOADB :
     {
         Variable tmp8 = Variable("tmp", 8);
-        instructions.append(new InstructionLoad(mem, lval, tmp8, trace_address));
-        instructions.append(new InstructionAssign(oper0, tmp8));
+        append(new InstructionLoad(mem, lval, tmp8, trace_address));
+        append(new InstructionAssign(oper0, tmp8));
         break;
     }
     case OP_LOADBR :
     {
         Variable tmp8 = Variable("tmp", 8);
-        instructions.append(new InstructionLoad(mem, oper1, tmp8, trace_address));
-        instructions.append(new InstructionAssign(oper0, tmp8));
+        append(new InstructionLoad(mem, oper1, tmp8, trace_address));
+        append(new InstructionAssign(oper0, tmp8));
         break;
     }
     case OP_STOR :
@@ -199,15 +206,15 @@ bool Hsvmt :: translate (uint8_t * data, uint32_t size, uint64_t address, uint64
     case OP_STORB :
     {
         Variable tmp8 = Variable("tmp", 8);
-        instructions.append(new InstructionAssign(tmp8, oper0));
-        instructions.append(new InstructionStore(mem, lval, tmp8, trace_address));
+        append(new InstructionAssign(tmp8, oper0));
+        append(new InstructionStore(mem, lval, tmp8, trace_address));
         break;
     }
     case OP_STORBR :
     {
         Variable tmp8 = Variable("tmp", 8);
-        instructions.append(new InstructionAssign(tmp8, oper1));
-        instructions.append(new InstructionStore(mem, oper0, tmp8, trace_address));
+        append(new InstructionAssign(tmp8, oper1));
+        append(new InstructionStore(mem, oper0, tmp8, trace_address));
         break;
     }
     case OP_IN :
@@ -215,47 +222,47 @@ bool Hsvmt :: translate (uint8_t * data, uint32_t size, uint64_t address, uint64
         char input_name [64];
         snprintf(input_name, 64, "in%d", input_byte_count++);
         Variable in = Variable(input_name, 8);
-        instructions.append(new InstructionAssign(oper0, in));
+        append(new InstructionAssign(oper0, in));
         break;
     }
     case OP_OUT :
     {
         Variable out = Variable("out", 8);
-        instructions.append(new InstructionAssign(out, oper0));
+        append(new InstructionAssign(out, oper0));
         break;
     }
     case OP_PUSH :
-        instructions.append(new InstructionSub(Variable("rsp", 16), Variable("rsp", 16), Variable(16, 2)));
+        append(new InstructionSub(Variable("rsp", 16), Variable("rsp", 16), Variable(16, 2)));
         store16(mem, Variable("rsp", 16), oper0, trace_address);
         break;
     case OP_PUSHLVAL :
-        instructions.append(new InstructionSub(Variable("rsp", 16), Variable("rsp", 16), Variable(16, 2)));
+        append(new InstructionSub(Variable("rsp", 16), Variable("rsp", 16), Variable(16, 2)));
         store16(mem, Variable("rsp", 16), lval, trace_address);
         break;
     case OP_POP :
     {
         Variable tmp = Variable("tmp", 16);
         tmp = load16(mem, Variable("rsp", 16), trace_address);
-        instructions.append(new InstructionAdd(Variable("rsp", 16), Variable("rsp", 16), Variable(16, 2)));
-        instructions.append(new InstructionAssign(oper0, tmp));
+        append(new InstructionAdd(Variable("rsp", 16), Variable("rsp", 16), Variable(16, 2)));
+        append(new InstructionAssign(oper0, tmp));
         break;
     }
     case OP_MOV :
-        instructions.append(new InstructionAssign(oper0, oper1));
+        append(new InstructionAssign(oper0, oper1));
         break;
     case OP_MOVLVAL :
-        instructions.append(new InstructionAssign(oper0, lval));
+        append(new InstructionAssign(oper0, lval));
         break;
     case OP_CMP :
     {
         Variable flags = Variable("flags", 16);
-        instructions.append(new InstructionSub(flags, oper0, oper1));
+        append(new InstructionSub(flags, oper0, oper1));
         break;
     }
     case OP_CMPLVAL :
     {
         Variable flags = Variable("flags", 16);
-        instructions.append(new InstructionSub(flags, oper0, lval));
+        append(new InstructionSub(flags, oper0, lval));
         break;
     }
     default :

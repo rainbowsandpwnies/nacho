@@ -81,6 +81,8 @@ struct _instruction {
 class Hsvmt : public Translator {
     private :
         struct _instruction * ins;
+        
+        void append (Instruction * instruction);
 
         Variable reg_to_var (uint8_t reg);
         Variable lval_to_var (uint16_t lval);
@@ -88,6 +90,7 @@ class Hsvmt : public Translator {
         Variable load16 (const Variable & mem, const Variable & address, uint64_t mem_address);
 
         unsigned int input_byte_count;
+        uint64_t pc;
 
     public :
         Hsvmt();

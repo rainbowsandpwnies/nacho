@@ -45,8 +45,12 @@ class Variable {
 class Instruction {
     protected :
         std::string opcode;
+        uint64_t pc;
     public :
-        Instruction (std::string opcode) : opcode (opcode) {}
+        Instruction (std::string opcode, uint64_t pc)
+            : opcode (opcode), pc (pc) {}
+        Instruction (std::string opcode)
+            : opcode (opcode) {}
         virtual ~Instruction() {};
         virtual Variable * variable_written () = 0;
         virtual std::list <Variable *> variables_read () = 0;
@@ -56,6 +60,8 @@ class Instruction {
         virtual Instruction * copy () = 0;
         virtual queso::Instruction to_queso () = 0;
         std::string g_opcode () { return opcode; }
+        uint64_t    g_pc () { return pc; }
+        void        s_pc (uint64_t pc) { this->pc = pc; }
 };
 
 class InstructionComment : public Instruction {

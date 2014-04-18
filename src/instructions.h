@@ -25,7 +25,7 @@ class Instructions {
         std::list <std::string> declarations ();
 
         std::list <Instruction *> g_instructions () { return instructions; }
-        
+
         std::string smtlib2 ();
 
         std::string to_json_str ();
