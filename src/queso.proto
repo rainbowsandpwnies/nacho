@@ -1,0 +1,65 @@
+package queso;
+
+enum VarType {
+    VARIABLE = 1;
+    CONSTANT = 2;
+    ARRAY = 3;
+}
+
+message Variable {
+    required VarType type = 1;
+    optional string name = 2;
+    required int32  bits = 3;
+    optional uint32 addresses = 4;
+    optional uint64 lval = 5;
+    required uint32 count = 6;
+}
+
+
+enum Opcode {
+    COMMENT = 0;
+    ASSIGN = 1;
+    STORE = 2;
+    LOAD = 3;
+    ITE = 4;
+    SIGNEXTEND = 5;
+    ADD = 6;
+    SUB = 7;
+    MUL = 8;
+    UDIV = 9;
+    UMOD = 10;
+    AND = 11;
+    OR = 12;
+    XOR = 13;
+    SHR = 14;
+    SHL = 15;
+    CMPEQ = 16;
+    CMPLTU = 17;
+    CMPLEU = 18;
+    CMPLTS = 19;
+    CMPLES = 20;
+}
+
+
+message Instruction {
+    required Opcode opcode = 1;
+    optional Variable dst = 2;
+    optional Variable lhs = 3;
+    optional Variable rhs = 4;
+    optional Variable src = 5;
+    optional Variable condition = 6;
+    optional Variable t = 7;
+    optional Variable e = 8;
+    optional Variable address = 9;
+    optional Variable mem = 10;
+    optional Variable srcmem = 11;
+    optional Variable dstmem = 12;
+    optional Variable value = 13;
+    optional string comment = 14;
+    optional uint64 trace_address = 15;
+    optional uint64 pc = 16;
+}
+
+message Instructions {
+    repeated Instruction instruction = 1;
+}
