@@ -1,11 +1,11 @@
-I give up documenting. No more documenting is going to happen. This project is effectively closed.
+This project is effectively closed.
 
 nacho
 =====
 
-Nacho is a static analysis framework originally designed so endeav0r could do some speaking and talking at aha. However, seeing as how it _is_ a fully-functional static analysis framework, it's worth documenting and releasing to a small group.
+Nacho is a static analysis framework originally designed so endeav0r could do some speaking and talking at aha. However, seeing as how it _is_ a fully-functional static analysis framework, it's worth releasing to a small group.
 
-The current release includes a translator for hsvm ( http://github.com/endeav0r/hsvm ) but you can bet your ass I'll be writing a translator for x86 in the next few weeks.
+The current release includes a translator for hsvm ( http://github.com/endeav0r/hsvm ).
 
 Quickstart
 ==========
